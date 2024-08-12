@@ -581,7 +581,12 @@ fn build_solana_package(
         .cloned()
         .unwrap_or_else(|| target_directory.join("deploy"));
 
-    let target_build_directory = target_directory.join("sbf-solana-solana").join("release");
+    let mut target_build_directory = target_directory.join("sbf-solana-solana");
+    if config.debug {
+        target_build_directory = target_build_directory.join("debug");
+    } else {
+        target_build_directory = target_build_directory.join("release");
+    }
 
     env::set_current_dir(root_package_dir).unwrap_or_else(|err| {
         error!(
@@ -699,10 +704,12 @@ fn build_solana_package(
     let mut cargo_build_args = vec![
         "+solana",
         "build",
-        "--release",
         "--target",
         "sbf-solana-solana",
     ];
+    if !config.debug {
+        cargo_build_args.push("--release")
+    }
     if config.arch == "sbfv2" {
         cargo_build_args.push("-Zbuild-std=std,panic_abort");
     }
